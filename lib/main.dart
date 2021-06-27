@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_api/film_page.dart';
+import 'package:flutter_api/lesson_6/files.dart';
+import 'package:flutter_api/lesson_6/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -27,6 +29,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  final counter = 0;
+  @override
+  void initState() {
+    super.initState();
+    workWithSharedPreferences(counter);
+    workWithFiles(counter);
+  }
   @override
   Widget build(BuildContext context) {
     return FilmPage();
