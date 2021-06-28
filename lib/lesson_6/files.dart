@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 Future<String> _localPath() async {
   final directory = await getApplicationDocumentsDirectory();
@@ -16,7 +17,7 @@ Future<File> writeCounter(int counter) async {
   final file = await _localFile();
 
   // Запись в файл
-  return file.writeAsString('$counter');
+  return file.writeAsString('$counter', mode: FileMode.append);
 }
 
 Future<int> readCounter() async {
@@ -30,6 +31,13 @@ Future<int> readCounter() async {
   } catch (exception) {
     return 0;
   }
+}
+
+Future<List<String>> getFileFromAssets() async {
+  final fileString = await rootBundle.loadString('assets/res/recovery.txt');
+  print('Films from file: $fileString');
+
+  return fileString.split(';').toList();
 }
 
 void workWithFiles(int counter) async {

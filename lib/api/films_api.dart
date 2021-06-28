@@ -1,4 +1,6 @@
+import 'package:flutter_api/main.dart';
 import 'package:flutter_api/models/films_model.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -12,14 +14,10 @@ class RepositoryFilm {
 
 class GetFilmInteractor {
   Future<Films?> execute() async {
-    Films result;
     try {
       Response response = await takeFilm();
       if (response.statusCode == 200) {
-        print(response.body);
-        final data = json.decode(response.body);
-        result = Films.fromJson(data);
-        return result;
+        return _parseResult(response);
       }
     } catch (ex) {
       return null;
@@ -27,28 +25,35 @@ class GetFilmInteractor {
   }
 
   Future<Films?> executeWithName(String name) async {
-    Films result;
     try {
       Response response = await takeFilmWithName(name);
       if (response.statusCode == 200) {
-        print(response.body);
-        final data = json.decode(response.body);
-        result = Films.fromJson(data);
-        return result;
+        return _parseResult(response);
       }
     } catch (ex) {
       return null;
     }
   }
+
+  Future<Films?> _parseResult(Response response) async{
+    Films result;
+    final box = await Hive.openBox<Films>(hiveBox);
+    print(response.body);
+    final data = json.decode(response.body);
+    result = Films.fromJson(data);
+    //Сохранение в БД
+    box.add(result);
+    return result;
+  }
 }
 
 Future<Response> takeFilm() async {
   final Uri uri =
-      Uri.parse('http://www.omdbapi.com/?apikey=b0839b58&t=Blade+Runner');
+      Uri.parse('https://www.omdbapi.com/?apikey=beff57c&t=Blade+Runner');
   return await http.post(uri);
 }
 
 Future<Response> takeFilmWithName(String name) async {
-  final Uri uri = Uri.parse('http://www.omdbapi.com/?apikey=b0839b58&t=$name');
+  final Uri uri = Uri.parse('https://www.omdbapi.com/?apikey=beff57c&t=$name');
   return await http.post(uri);
 }
