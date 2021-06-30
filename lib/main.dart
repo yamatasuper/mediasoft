@@ -1,21 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_api/film_page.dart';
-import 'package:flutter_api/lesson_6/files.dart';
-import 'package:flutter_api/lesson_6/shared_preferences.dart';
-import 'package:flutter_api/models/films_model.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_application_1/bloc/bored_bloc.dart';
+import 'package:flutter_application_1/model/bored.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-const String hiveBox = 'history';
-
-void main() async {
-  //Инициализация Hive
-  await Hive.initFlutter();
-  //Регистрация сгенерированного адаптера для нашей модели фильма
-  Hive.registerAdapter(FilmsAdapter());
-  Hive.registerAdapter(RatingAdapter());
-  await Hive.openBox<Films>(hiveBox);
+void main() {
   runApp(MyApp());
 }
 
@@ -23,41 +11,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('BLoC Example'),
+        ),
+        body: Center(
+          child: BlocProvider(
+            create: (context) => BoredBloc(),
+            child: MyHomeWidget(),
+          ),
+        ),
       ),
-      debugShowCheckedModeBanner: false,
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+class MyHomeWidget extends StatelessWidget {
+  const MyHomeWidget({Key? key}) : super(key: key);
 
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  final counter = 0;
-  @override
-  void initState() {
-    super.initState();
-    workWithSharedPreferences(counter);
-    workWithFiles(counter);
-  }
   @override
   Widget build(BuildContext context) {
-    return FilmPage();
-  }
-
-  @override
-  void dispose() {
-    Hive.close();
-    super.dispose();
+    BlocProvider.of<BoredBloc>(context).add(LoadingEvent());
+    return BlocBuilder<BoredBloc, BoredState>(
+      builder: (context, state) {
+        if (state is LoadingState) return CircularProgressIndicator();
+        if (state is ErrorState) return Text('Что-то пошло не так(((');
+        if (state is LoadedState) {
+          final Bored data = state.data;
+          return Text(
+            data.activity,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.blueGrey, fontSize: 20),
+          );
+        }
+        return Text('Блок не работает почему-то((((');
+      },
+    );
   }
 }
